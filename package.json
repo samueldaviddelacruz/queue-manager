@@ -4,7 +4,7 @@
   "private": true,
   "main": "./bin/www.js",
   "scripts": {
-    "start": "node ./bin/www.js --harmony-async-await"
+    "start": "node ./bin/www --harmony-async-await"
   },
   "dependencies": {
     "bluebird": "^3.4.7",
