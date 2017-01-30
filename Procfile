@@ -1,1 +1,1 @@
-web: node ./bin/www.js --harmony-async-await
+web: node ./bin/www --harmony-async-await
