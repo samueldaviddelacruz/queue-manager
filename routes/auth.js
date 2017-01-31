@@ -9,10 +9,12 @@ const data = require('../data');
 const auth = require('../auth')
 
 /* GET users listing. */
-router.get('/register', auth.hasValidJWT, function (req, res, next) {
+router.get('/blockedroute', auth.hasValidJWT, function (req, res, next) {
+    let data = {
+        data: " this is protected data"
+    };
 
-
-    res.send('respond with a resource');
+    res.send(data);
 
 });
 
