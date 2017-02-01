@@ -5,11 +5,11 @@
     const config = require('../config');
     const jwt = require('jsonwebtoken');
 
-    async function isLocalUserValid(username, password) {
+    async function isLocalUserValid(email, password) {
         let user;
 
         try {
-            user = await data.getUser(username);
+            user = await data.getUser(email);
             if (!user) {
                 return false;
             }
@@ -28,9 +28,9 @@
         }
     }
 
-    const generateJWT = (username) => {
+    const generateJWT = (email) => {
 
-        let token = jwt.sign({username: username}, config.JWT_KEY);
+        let token = jwt.sign({name: email}, config.JWT_KEY);
         return token;
     };
 
@@ -77,8 +77,8 @@
         var salt = hasher.createSalt();
         return {
             //name: req.body.name,
-            email: req.body.email,
-            username: req.body.username.toUpperCase(),
+            email: req.body.email.toUpperCase(),
+            name: req.body.name,
             passwordHash: hasher.computeHash(req.body.password, salt),
             salt: salt
         };
@@ -87,14 +87,15 @@
 
     auth.logInLocalUser = async(req, res) => {
         console.log(req.body);
-        let username = req.body.username.toUpperCase();
+
+        let email = req.body.email.toUpperCase();
         let password = req.body.password;
 
-        if (await isLocalUserValid(username, password)) {
+        if (await isLocalUserValid(email, password)) {
             //get JWT here and return it to the user with the response
             //let token = GetJWT();
             //console.log("wtf");
-            let response = getResponseWithToken({username});
+            let response = getResponseWithToken({email});
 
             return res.status(200).send(response);
 
@@ -109,33 +110,62 @@
         let user;
         let message;
         try {
-            user = await data.getUser(newUser.username);
-            if (user) {
-                message = `${user.username} already in use`;
-                res.status(401).send(message);
-
-            } else {
 
                 await data.addUser(newUser);
 
                 let response = getResponseWithToken(newUser);
                 res.status(200).send(response);
 
-            }
-        } catch (err) {
-            console.log(err);
-            message = "Could Not save User to Database";
-            res.status(401).res.send(message);
 
+        } catch (err) {
+
+            // debugger;
+            //console.log(err);
+
+
+            message = parseErrorMessage(err);
+            return res.status(401).send(message);
         }
+
     };
 
-    const getResponseWithToken = (user = {email: "", username: ""}) => {
-        let token = generateJWT(user.username);
+    const parseErrorMessage = (err) => {
+        console.log(err.message);
+        let returnMessage = "Could Not save User to Database";
+        let errorMessage = err.message;
+        if (errorMessage.indexOf("E11000") != -1) {
+
+            returnMessage = parseUniqueConstraintError(errorMessage);
+
+            console.log(`duplicate key ${returnMessage}`);
+            return returnMessage;
+        }
+        return returnMessage;
+
+    };
+
+    const parseUniqueConstraintError = (errorMessage) => {
+
+        let startIndxEmail = errorMessage.indexOf(`"`) + 1;
+        let endIndxEmail = errorMessage.lastIndexOf(`"`);
+
+        let email = errorMessage.substring(startIndxEmail, endIndxEmail);
+
+        //+errorMessage.substring(startIndx,endIndx);
+        let returnMessage = `${email} already exists`;
+
+        return returnMessage;
+
+
+    };
+
+
+    const getResponseWithToken = (user = {email: "", name: ""}) => {
+        let token = generateJWT(user.email);
 
         return {
             email: user.email,
-            username: user.username,
+            name: user.name,
             token: token
         };
 
