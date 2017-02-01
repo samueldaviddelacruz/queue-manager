@@ -31,12 +31,10 @@ const filterByParam = (req) => {
         let filteredList = businessList.filter((business) => {
             //console.log(business[pproperty])
             //console.log(paramval)
-            let condition;
-            if (typeof business[pproperty] == "string") {
-                condition = business[pproperty].toUpperCase().indexOf(paramval) != -1
-            } else {
-                condition = business[pproperty] == paramval;
-            }
+            let objvalue = business[pproperty];
+
+            let condition = isString(objvalue) ? objvalue.toUpperCase().indexOf(paramval) != -1 : objvalue == paramval;
+
 
             return condition;
         });
@@ -48,6 +46,10 @@ const filterByParam = (req) => {
     console.log(results)
     return results;
 
-}
+};
 
+
+const isString = (value) => {
+    return typeof value == "string"
+}
 module.exports = router;
